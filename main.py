@@ -9,11 +9,12 @@ pygame.init()
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 900
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-font = pygame.font.SysFont(None, 15)
+font = pygame.font.SysFont(None, 25)
 pygame.display.set_caption('game')
 
 clock = pygame.time.Clock()
 
+spawns = ((20, 20), (20, SCREEN_HEIGHT - 40), (SCREEN_WIDTH - 40, 20), (SCREEN_WIDTH - 40, SCREEN_HEIGHT - 40))
 
 class Player:
     def __init__(self):
@@ -44,7 +45,6 @@ class Bullet:
         self.size = 6
         self.color = (255, 255, 255)
         self.surface = pygame.Surface((self.size, self.size))
-        self.surface.fill(self.color)
         if direction == 0:
             self.vx = 0
             self.vy = -5
@@ -60,6 +60,9 @@ class Bullet:
         if direction == 4:
             self.vx = 0
             self.vy = 0
+            self.color = (150, 150, 150)
+        self.surface.fill(self.color)
+
     def move(self):
         self.coor = (self.coor[0] + self.vx, self.coor[1] + self.vy)
     def check(self, obj):
@@ -69,13 +72,21 @@ class Bullet:
             
 class Enemy:
     def __init__(self):
+        #self.coor = (randrange(SCREEN_WIDTH), randrange(SCREEN_HEIGHT))
         self.coor = (randrange(SCREEN_WIDTH), randrange(SCREEN_HEIGHT))
+        #self.coor = spawns[randrange(len(spawns))] 
+        
+
         self.size = 20
-        self.color = (255, 0, 0)
+        self.color = (200, 50, 50)
         self.surface = pygame.Surface((self.size, self.size))
         self.surface.fill(self.color)        
         self.speed = 1
     def move(self, pl_coor):
+        
+
+            
+
         if pl_coor[0] > self.coor[0]:
             self.coor = (self.coor[0] + self.speed, self.coor[1])
         if pl_coor[1] > self.coor[1]:
@@ -86,18 +97,19 @@ class Enemy:
             self.coor = (self.coor[0], self.coor[1] - self.speed)
         if pl_coor[0] - self.coor[0] <= 2 and pl_coor[1] - self.coor[1] <= 2:
             if self.coor[0] - pl_coor[0] <= 2 and self.coor[1] - pl_coor[1] <= 2:
-
-        #if round(pl_coor[0], -10) == round(self.coor[0], -10) and round(pl_coor[1] - 10) == round(self.coor[1], -10):
                 pygame.quit()
+
+
+
 class fastEnemy(Enemy):
     def __init__(self):
-        self.coor = (randrange(SCREEN_WIDTH), randrange(SCREEN_HEIGHT))
+        #self.coor = (randrange(SCREEN_WIDTH), randrange(SCREEN_HEIGHT))
+        self.coor = spawns[randrange(len(spawns))] 
         self.size = 20
-        self.color = (200, 200, 200)
+        self.color = (255, 20, 20)
         self.surface = pygame.Surface((self.size, self.size))
         self.surface.fill(self.color)        
         self.speed = 3
-        
         
 
 def draw_text(text, font, color, x, y):
@@ -108,6 +120,7 @@ running = True
 player = Player()
 bullets = []
 enemies = []
+ammo = 30
 level = 1
 sec_event = pygame.USEREVENT + 1
 pygame.time.set_timer(sec_event, 500)
@@ -130,15 +143,18 @@ while running:
                     enemies.append(Enemy())
     screen.fill('Black')
     player.move()
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_i]:
-        bullets.append(Bullet(player.coor, 0))
-    if keys[pygame.K_k]:
-        bullets.append(Bullet(player.coor, 1))
-    if keys[pygame.K_j]:
-        bullets.append(Bullet(player.coor, 2))
-    if keys[pygame.K_l]:
-        bullets.append(Bullet(player.coor, 3))
+    if ammo > len(bullets):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_i]:
+            bullets.append(Bullet(player.coor, 0))
+        if keys[pygame.K_k]:
+            bullets.append(Bullet(player.coor, 1))
+        if keys[pygame.K_j]:
+            bullets.append(Bullet(player.coor, 2))
+        if keys[pygame.K_l]:
+            bullets.append(Bullet(player.coor, 3))
+        if keys[pygame.K_SPACE]:
+            bullets.append(Bullet(player.coor, 4))
     for item in enemies:
         item.move(player.coor)
         screen.blit(item.surface, item.coor)
@@ -153,12 +169,16 @@ while running:
                 if item in enemies:
                     enemies.remove(item)
                 level = level + 1
+                ammo = ammo + 1
     for item in bullets:
         item.move()
         screen.blit(item.surface, item.coor)
     screen.blit(player.surface, player.coor)
-    draw_text(str(level), font, 'White', (SCREEN_WIDTH - 50), (SCREEN_HEIGHT - 50))
+    draw_text(str(ammo), font, 'White', (SCREEN_WIDTH - 50), (SCREEN_HEIGHT - 80))
+    draw_text(str(ammo - len(bullets)), font, 'White', (SCREEN_WIDTH - 80), (SCREEN_HEIGHT - 80))
     pygame.display.update()
     clock.tick(60)
 pygame.quit()
+
+
 
